@@ -1,206 +1,206 @@
--- Mer Hub Free Version (FF2 only) by Mer Beauvoir
+-- Mer Hub FF2 Free Version by Mer Beauvoir
+-- Key: MERHUBFREE
+-- Auto-updater included
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Clean old GUI
-local oldGui = playerGui:FindFirstChild("MerHub")
-if oldGui then oldGui:Destroy() end
+local repoRaw = "https://raw.githubusercontent.com/mertoolit/Merhub-ff2/main/MerhubFF2-Free.lua"
+
+-- Auto update function
+local function autoUpdate()
+    local success, newCode = pcall(function()
+        return game:HttpGet(repoRaw)
+    end)
+    if success and newCode and newCode ~= script.Source then
+        loadstring(newCode)()
+        return true
+    end
+    return false
+end
+
+if autoUpdate() then return end
 
 -- Key system
 local KEY = "MERHUBFREE"
 
--- Create GUI container
+-- Clear old gui
+local oldGui = playerGui:FindFirstChild("MerHub")
+if oldGui then oldGui:Destroy() end
+
+-- Create ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MerHub"
 ScreenGui.Parent = playerGui
 ScreenGui.ResetOnSpawn = false
 
--- Welcome Screen
-local WelcomeFrame = Instance.new("Frame", ScreenGui)
-WelcomeFrame.Size = UDim2.new(0, 400, 0, 200)
-WelcomeFrame.Position = UDim2.new(0.5, -200, 0.5, -100)
-WelcomeFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-WelcomeFrame.BorderSizePixel = 0
-WelcomeFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+-- Floating draggable Mer button
+local MerButton = Instance.new("TextButton")
+MerButton.Size = UDim2.new(0, 60, 0, 60)
+MerButton.Position = UDim2.new(0.05, 0, 0.5, -30)
+MerButton.BackgroundColor3 = Color3.fromRGB(100, 40, 160)
+MerButton.TextColor3 = Color3.new(1, 1, 1)
+MerButton.Font = Enum.Font.GothamBold
+MerButton.TextSize = 20
+MerButton.Text = "Mer"
+MerButton.BorderSizePixel = 0
+MerButton.Parent = ScreenGui
+MerButton.ZIndex = 50
+MerButton.Visible = false
 
-local WelcomeText = Instance.new("TextLabel", WelcomeFrame)
-WelcomeText.Text = "Welcome to Mer Hub!"
-WelcomeText.Size = UDim2.new(1, 0, 1, 0)
-WelcomeText.TextColor3 = Color3.fromRGB(180, 180, 255)
-WelcomeText.Font = Enum.Font.GothamBold
-WelcomeText.TextSize = 36
-WelcomeText.BackgroundTransparency = 1
-
--- Function to fade out welcome and show main GUI
-local function hideWelcome()
-    local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    local tween = TweenService:Create(WelcomeFrame, tweenInfo, {BackgroundTransparency = 1, TextTransparency = 1})
-    tween:Play()
-    tween.Completed:Connect(function()
-        WelcomeFrame:Destroy()
-        mainGui.Enabled = true
-    end)
-end
-
-delay(2, hideWelcome) -- Show welcome for 2 seconds
-
--- Main GUI (hidden initially)
-local mainGui = Instance.new("ScreenGui")
-mainGui.Name = "MerHubMain"
-mainGui.Parent = playerGui
-mainGui.Enabled = false
-mainGui.ResetOnSpawn = false
-
--- Main Frame
-local MainFrame = Instance.new("Frame", mainGui)
-MainFrame.Size = UDim2.new(0, 450, 0, 320)
-MainFrame.Position = UDim2.new(0.5, -225, 0.5, -160)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 20, 40)
-MainFrame.BorderSizePixel = 0
-MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-
--- Make draggable
+-- Draggable code
 local dragging, dragInput, dragStart, startPos
-MainFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
+MerButton.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = MerButton.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
 end)
-MainFrame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        dragInput = input
-    end
+MerButton.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
+		dragInput = input
+	end
 end)
 RunService.RenderStepped:Connect(function()
-    if dragging and dragInput then
-        local delta = dragInput.Position - dragStart
-        MainFrame.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
-        )
-    end
+	if dragging and dragInput then
+		local delta = dragInput.Position - dragStart
+		MerButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+			startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
 end)
 
+-- Main Hub frame
+local HubFrame = Instance.new("Frame")
+HubFrame.Size = UDim2.new(0, 300, 0, 350)
+HubFrame.Position = UDim2.new(0.5, -150, 0.5, -175)
+HubFrame.BackgroundColor3 = Color3.fromRGB(30, 20, 40)
+HubFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+HubFrame.BorderSizePixel = 0
+HubFrame.Visible = false
+HubFrame.Parent = ScreenGui
+HubFrame.Active = true
+HubFrame.Draggable = true
+
 -- Title bar
-local TitleBar = Instance.new("Frame", MainFrame)
+local TitleBar = Instance.new("Frame", HubFrame)
 TitleBar.Size = UDim2.new(1, 0, 0, 40)
 TitleBar.BackgroundColor3 = Color3.fromRGB(50, 30, 70)
 
-local TitleLabel = Instance.new("TextLabel", TitleBar)
-TitleLabel.Text = "Mer Hub Free Version - Football Fusion 2"
-TitleLabel.Size = UDim2.new(1, -40, 1, 0)
-TitleLabel.BackgroundTransparency = 1
-TitleLabel.TextColor3 = Color3.fromRGB(220, 220, 255)
-TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.TextSize = 20
-TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+local Title = Instance.new("TextLabel", TitleBar)
+Title.Text = "Mer Hub - FF2 (Free)"
+Title.Size = UDim2.new(1, -40, 1, 0)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.fromRGB(220, 220, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
+Title.TextXAlignment = Enum.TextXAlignment.Left
 
-local CloseButton = Instance.new("TextButton", TitleBar)
-CloseButton.Text = "X"
-CloseButton.Size = UDim2.new(0, 40, 1, 0)
-CloseButton.Position = UDim2.new(1, -40, 0, 0)
-CloseButton.BackgroundColor3 = Color3.fromRGB(120, 40, 70)
-CloseButton.TextColor3 = Color3.new(1, 1, 1)
-CloseButton.Font = Enum.Font.GothamBold
-CloseButton.TextSize = 20
-CloseButton.MouseButton1Click:Connect(function()
-    mainGui.Enabled = false
+local Close = Instance.new("TextButton", TitleBar)
+Close.Text = "X"
+Close.Size = UDim2.new(0, 40, 1, 0)
+Close.Position = UDim2.new(1, -40, 0, 0)
+Close.BackgroundColor3 = Color3.fromRGB(120, 40, 70)
+Close.TextColor3 = Color3.new(1, 1, 1)
+Close.Font = Enum.Font.GothamBold
+Close.TextSize = 18
+Close.MouseButton1Click:Connect(function()
+    HubFrame.Visible = false
+    MerButton.Visible = true
 end)
 
--- Content frame
-local ContentFrame = Instance.new("Frame", MainFrame)
-ContentFrame.Size = UDim2.new(1, 0, 1, -40)
-ContentFrame.Position = UDim2.new(0, 0, 0, 40)
-ContentFrame.BackgroundColor3 = Color3.fromRGB(25, 15, 40)
+-- Tabs container
+local TabsFrame = Instance.new("Frame", HubFrame)
+TabsFrame.Size = UDim2.new(1, 0, 1, -40)
+TabsFrame.Position = UDim2.new(0, 0, 0, 40)
+TabsFrame.BackgroundColor3 = Color3.fromRGB(25, 15, 40)
 
--- Key Entry GUI (modal)
-local KeyFrame = Instance.new("Frame", mainGui)
-KeyFrame.Size = UDim2.new(0, 350, 0, 180)
-KeyFrame.Position = UDim2.new(0.5, -175, 0.5, -90)
-KeyFrame.BackgroundColor3 = Color3.fromRGB(30, 20, 40)
-KeyFrame.BorderSizePixel = 0
+-- Tab buttons container
+local TabButtonsFrame = Instance.new("Frame", TabsFrame)
+TabButtonsFrame.Size = UDim2.new(1, 0, 0, 40)
+TabButtonsFrame.BackgroundTransparency = 1
+TabButtonsFrame.Position = UDim2.new(0, 0, 0, 0)
 
-local KeyLabel = Instance.new("TextLabel", KeyFrame)
-KeyLabel.Text = "Enter Key to Access Mer Hub:"
-KeyLabel.Size = UDim2.new(1, 0, 0, 40)
-KeyLabel.Position = UDim2.new(0, 0, 0, 10)
-KeyLabel.BackgroundTransparency = 1
-KeyLabel.TextColor3 = Color3.fromRGB(220, 220, 255)
-KeyLabel.Font = Enum.Font.GothamBold
-KeyLabel.TextSize = 20
+-- Helper function to create tab button
+local function createTabButton(name, posX)
+	local btn = Instance.new("TextButton", TabButtonsFrame)
+	btn.Size = UDim2.new(0, 100, 1, 0)
+	btn.Position = UDim2.new(0, posX, 0, 0)
+	btn.BackgroundColor3 = Color3.fromRGB(80, 50, 110)
+	btn.Text = name
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 18
+	return btn
+end
 
-local KeyBox = Instance.new("TextBox", KeyFrame)
-KeyBox.PlaceholderText = "Enter Key"
-KeyBox.Size = UDim2.new(0.8, 0, 0, 40)
-KeyBox.Position = UDim2.new(0.1, 0, 0, 60)
-KeyBox.ClearTextOnFocus = false
-KeyBox.Text = ""
+-- Create tabs
+local tabs = {}
+local currentTab
 
-local SubmitButton = Instance.new("TextButton", KeyFrame)
-SubmitButton.Text = "Submit"
-SubmitButton.Size = UDim2.new(0.3, 0, 0, 40)
-SubmitButton.Position = UDim2.new(0.35, 0, 0, 110)
-SubmitButton.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-SubmitButton.TextColor3 = Color3.new(1, 1, 1)
-SubmitButton.Font = Enum.Font.GothamBold
-SubmitButton.TextSize = 20
+-- Catching Tab
+local CatchingTab = Instance.new("Frame", TabsFrame)
+CatchingTab.Size = UDim2.new(1, 0, 1, -40)
+CatchingTab.Position = UDim2.new(0, 0, 0, 40)
+CatchingTab.BackgroundTransparency = 1
+CatchingTab.Visible = false
+tabs["Catching"] = CatchingTab
 
-local InfoLabel = Instance.new("TextLabel", KeyFrame)
-InfoLabel.Size = UDim2.new(1, 0, 0, 40)
-InfoLabel.Position = UDim2.new(0, 0, 0, 150)
-InfoLabel.BackgroundTransparency = 1
-InfoLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
-InfoLabel.Font = Enum.Font.Gotham
-InfoLabel.TextSize = 16
-InfoLabel.Text = ""
+local autoCatch = false
+local autoCatchConn
 
--- Auto Catch, ESP, No High Jump feature variables
-local autoCatchEnabled = false
-local espEnabled = false
-local noJumpEnabled = false
+local autoCatchBtn = Instance.new("TextButton", CatchingTab)
+autoCatchBtn.Size = UDim2.new(0, 260, 0, 40)
+autoCatchBtn.Position = UDim2.new(0.5, -130, 0, 20)
+autoCatchBtn.BackgroundColor3 = Color3.fromRGB(80, 50, 110)
+autoCatchBtn.TextColor3 = Color3.new(1, 1, 1)
+autoCatchBtn.Font = Enum.Font.GothamBold
+autoCatchBtn.TextSize = 18
+autoCatchBtn.Text = "Auto Catch (OFF)"
 
-local autoCatchConnection
-local espConnection
-local noJumpConnection
-
--- Auto Catch logic
-local function autoCatchLoop()
+local function catchLoop()
     local ball = workspace:FindFirstChild("Ball") or workspace:FindFirstChild("ball")
     if ball and ball:IsA("BasePart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         ball.CFrame = player.Character.HumanoidRootPart.CFrame
     end
 end
 
--- ESP logic
-local espBoxes = {}
+autoCatchBtn.MouseButton1Click:Connect(function()
+    autoCatch = not autoCatch
+    autoCatchBtn.Text = "Auto Catch (" .. (autoCatch and "ON" or "OFF") .. ")"
+    if autoCatch then
+        autoCatchConn = RunService.Heartbeat:Connect(catchLoop)
+    else
+        if autoCatchConn then
+            autoCatchConn:Disconnect()
+            autoCatchConn = nil
+        end
+    end
+end)
 
-local function createEsp(part, color)
-    local box = Instance.new("BoxHandleAdornment")
-    box.Adornee = part
-    box.AlwaysOnTop = true
-    box.ZIndex = 10
-    box.Size = part.Size + Vector3.new(0.2, 0.2, 0.2)
-    box.Color3 = color
-    box.Transparency = 0.5
-    box.Parent = part
-    return box
-end
+-- Visuals Tab
+local VisualsTab = Instance.new("Frame", TabsFrame)
+VisualsTab.Size = UDim2.new(1, 0, 1, -40)
+VisualsTab.Position = UDim2.new(0, 0, 0, 40)
+VisualsTab.BackgroundTransparency = 1
+VisualsTab.Visible = false
+tabs["Visuals"] = VisualsTab
+
+local esp = false
+local espBoxes = {}
+local espConn
 
 local function clearEsp()
     for _, box in pairs(espBoxes) do
@@ -213,103 +213,185 @@ end
 
 local function espLoop()
     clearEsp()
-    for _, plr in pairs(Players:GetPlayers()) do
+    for _, plr in ipairs(Players:GetPlayers()) do
         if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-            local box = createEsp(plr.Character.HumanoidRootPart, Color3.fromRGB(255, 0, 0))
+            local box = Instance.new("BoxHandleAdornment")
+            box.Adornee = plr.Character.HumanoidRootPart
+            box.Size = plr.Character.HumanoidRootPart.Size + Vector3.new(0.5, 0.5, 0.5)
+            box.Color3 = Color3.fromRGB(255, 0, 0)
+            box.Transparency = 0.5
+            box.AlwaysOnTop = true
+            box.ZIndex = 10
+            box.Parent = plr.Character.HumanoidRootPart
             table.insert(espBoxes, box)
         end
     end
     local ball = workspace:FindFirstChild("Ball") or workspace:FindFirstChild("ball")
     if ball and ball:IsA("BasePart") then
-        local box = createEsp(ball, Color3.fromRGB(0, 255, 255))
+        local box = Instance.new("BoxHandleAdornment")
+        box.Adornee = ball
+        box.Size = ball.Size + Vector3.new(0.5, 0.5, 0.5)
+        box.Color3 = Color3.fromRGB(0, 255, 255)
+        box.Transparency = 0.5
+        box.AlwaysOnTop = true
+        box.ZIndex = 10
+        box.Parent = ball
         table.insert(espBoxes, box)
     end
 end
 
--- No High Jump logic
-local function noJumpLoop()
-    if player.Character then
-        local humanoid = player.Character:FindFirstChild("Humanoid")
-        if humanoid then
-            humanoid.JumpPower = 50 -- Lower jump power to avoid high jump
-        end
-    end
-end
+local espBtn = Instance.new("TextButton", VisualsTab)
+espBtn.Size = UDim2.new(0, 260, 0, 40)
+espBtn.Position = UDim2.new(0.5, -130, 0, 20)
+espBtn.BackgroundColor3 = Color3.fromRGB(80, 50, 110)
+espBtn.TextColor3 = Color3.new(1, 1, 1)
+espBtn.Font = Enum.Font.GothamBold
+espBtn.TextSize = 18
+espBtn.Text = "ESP (OFF)"
 
--- Add feature buttons
-
-local yStart = 20
-local function createFeatureButton(text, posY, callback)
-    local btn = Instance.new("TextButton", ContentFrame)
-    btn.Text = text
-    btn.Size = UDim2.new(0, 220, 0, 40)
-    btn.Position = UDim2.new(0, 15, 0, posY)
-    btn.BackgroundColor3 = Color3.fromRGB(80, 50, 110)
-    btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 18
-    btn.AutoButtonColor = true
-    btn.MouseButton1Click:Connect(callback)
-    return btn
-end
-
-local autoCatchBtn = createFeatureButton("Toggle Auto Catch (OFF)", yStart, function()
-    autoCatchEnabled = not autoCatchEnabled
-    autoCatchBtn.Text = "Toggle Auto Catch (" .. (autoCatchEnabled and "ON" or "OFF") .. ")"
-    if autoCatchEnabled then
-        autoCatchConnection = RunService.Heartbeat:Connect(autoCatchLoop)
+espBtn.MouseButton1Click:Connect(function()
+    esp = not esp
+    espBtn.Text = "ESP (" .. (esp and "ON" or "OFF") .. ")"
+    if esp then
+        espConn = RunService.RenderStepped:Connect(espLoop)
     else
-        if autoCatchConnection then
-            autoCatchConnection:Disconnect()
-            autoCatchConnection = nil
-        end
-    end
-end)
-
-local espBtn = createFeatureButton("Toggle ESP (OFF)", yStart + 60, function()
-    espEnabled = not espEnabled
-    espBtn.Text = "Toggle ESP (" .. (espEnabled and "ON" or "OFF") .. ")"
-    if espEnabled then
-        espConnection = RunService.RenderStepped:Connect(espLoop)
-    else
-        if espConnection then
-            espConnection:Disconnect()
-            espConnection = nil
+        if espConn then
+            espConn:Disconnect()
+            espConn = nil
         end
         clearEsp()
     end
 end)
 
-local noJumpBtn = createFeatureButton("Toggle No High Jump (OFF)", yStart + 120, function()
-    noJumpEnabled = not noJumpEnabled
-    noJumpBtn.Text = "Toggle No High Jump (" .. (noJumpEnabled and "ON" or "OFF") .. ")"
-    if noJumpEnabled then
-        noJumpConnection = RunService.Heartbeat:Connect(noJumpLoop)
-    else
-        if noJumpConnection then
-            noJumpConnection:Disconnect()
-            noJumpConnection = nil
+-- Settings Tab
+local SettingsTab = Instance.new("Frame", TabsFrame)
+SettingsTab.Size = UDim2.new(1, 0, 1, -40)
+SettingsTab.Position = UDim2.new(0, 0, 0, 40)
+SettingsTab.BackgroundTransparency = 1
+SettingsTab.Visible = false
+tabs["Settings"] = SettingsTab
+
+local noJump = false
+local jumpConn
+
+local noJumpBtn = Instance.new("TextButton", SettingsTab)
+noJumpBtn.Size = UDim2.new(0, 260, 0, 40)
+noJumpBtn.Position = UDim2.new(0.5, -130, 0, 20)
+noJumpBtn.BackgroundColor3 = Color3.fromRGB(80, 50, 110)
+noJumpBtn.TextColor3 = Color3.new(1, 1, 1)
+noJumpBtn.Font = Enum.Font.GothamBold
+noJumpBtn.TextSize = 18
+noJumpBtn.Text = "No High Jump (OFF)"
+
+local function jumpLoop()
+    if player.Character then
+        local h = player.Character:FindFirstChild("Humanoid")
+        if h then
+            h.JumpPower = 50
         end
-        -- Reset jump power to default
+    end
+end
+
+noJumpBtn.MouseButton1Click:Connect(function()
+    noJump = not noJump
+    noJumpBtn.Text = "No High Jump (" .. (noJump and "ON" or "OFF") .. ")"
+    if noJump then
+        jumpConn = RunService.Heartbeat:Connect(jumpLoop)
+    else
+        if jumpConn then
+            jumpConn:Disconnect()
+            jumpConn = nil
+        end
         if player.Character then
-            local humanoid = player.Character:FindFirstChild("Humanoid")
-            if humanoid then
-                humanoid.JumpPower = 100
+            local h = player.Character:FindFirstChild("Humanoid")
+            if h then
+                h.JumpPower = 100
             end
         end
     end
 end)
 
--- Key submit logic
-SubmitButton.MouseButton1Click:Connect(function()
-    if KeyBox.Text == KEY then
-        InfoLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-        InfoLabel.Text = "Key accepted! Loading Mer Hub..."
-        wait(1)
-        KeyFrame:Destroy()
-        mainGui.Enabled = true
-    else
-        InfoLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
-        InfoLabel.Text = "Wrong key! Hint: Starts with 'MER', ends with 'FREE'"
+-- Tab buttons setup
+local tabNames = {"Catching", "Visuals", "Settings"}
+for i, name in ipairs(tabNames) do
+    local btn = createTabButton(name, (i - 1) * 100)
+    btn.MouseButton1Click:Connect(function()
+        for _, tab in pairs(tabs) do tab.Visible = false end
+        tabs[name].Visible = true
+        for _, b in pairs(TabButtonsFrame:GetChildren()) do
+            if b:IsA("TextButton") then
+                b.BackgroundColor3 = Color3.fromRGB(80, 50, 110)
+            end
+        end
+        btn.BackgroundColor3 = Color3.fromRGB(120, 60, 160)
+    end)
+    if i == 1 then
+        btn.BackgroundColor3 = Color3.fromRGB(120, 60, 160)
+        tabs[name].Visible = true
+        currentTab = tabs[name]
     end
+end
+
+-- Key Frame
+local KeyFrame = Instance.new("Frame", ScreenGui)
+KeyFrame.Size = UDim2.new(0, 300, 0, 150)
+KeyFrame.Position = UDim2.new(0.5, -150, 0.5, -75)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(30, 20, 40)
+KeyFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+KeyFrame.BorderSizePixel = 0
+KeyFrame.Visible = true
+
+local KeyLabel = Instance.new("TextLabel", KeyFrame)
+KeyLabel.Text = "Enter Key:"
+KeyLabel.Size = UDim2.new(1, 0, 0, 30)
+KeyLabel.Position = UDim2.new(0, 0, 0, 10)
+KeyLabel.BackgroundTransparency = 1
+KeyLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
+KeyLabel.Font = Enum.Font.GothamBold
+KeyLabel.TextSize = 20
+
+local KeyBox = Instance.new("TextBox", KeyFrame)
+KeyBox.Size = UDim2.new(0.8, 0, 0, 35)
+KeyBox.Position = UDim2.new(0.1, 0, 0, 50)
+KeyBox.PlaceholderText = "Enter Key"
+KeyBox.Text = ""
+KeyBox.ClearTextOnFocus = false
+
+local Submit = Instance.new("TextButton", KeyFrame)
+Submit.Text = "Submit"
+Submit.Size = UDim2.new(0.4, 0, 0, 35)
+Submit.Position = UDim2.new(0.3, 0, 0, 95)
+Submit.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+Submit.TextColor3 = Color3.new(1, 1, 1)
+Submit.Font = Enum.Font.GothamBold
+Submit.TextSize = 18
+
+local Info = Instance.new("TextLabel", KeyFrame)
+Info.Size = UDim2.new(1, 0, 0, 20)
+Info.Position = UDim2.new(0, 0, 0, 135)
+Info.BackgroundTransparency = 1
+Info.TextColor3 = Color3.fromRGB(255, 100, 100)
+Info.Font = Enum.Font.Gotham
+Info.TextSize = 14
+Info.Text = ""
+
+Submit.MouseButton1Click:Connect(function()
+	if KeyBox.Text == KEY then
+		Info.TextColor3 = Color3.fromRGB(0, 255, 0)
+		Info.Text = "Key Accepted!"
+		task.delay(1, function()
+			KeyFrame.Visible = false
+			MerButton.Visible = true
+		end)
+	else
+		Info.TextColor3 = Color3.fromRGB(255, 100, 100)
+		Info.Text = "Hint: Starts with 'MER' ends with 'FREE'"
+	end
+end)
+
+-- Show Mer button when key is accepted or after first use
+MerButton.Visible = false
+MerButton.MouseButton1Click:Connect(function()
+    HubFrame.Visible = true
+    MerButton.Visible = false
 end)
